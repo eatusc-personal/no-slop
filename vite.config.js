@@ -141,12 +141,19 @@ function runCli(bin, args, { outFile } = {}) {
     try {
       child = spawn(bin, args, { cwd: root, env: process.env, stdio: ['ignore', 'pipe', 'pipe'] })
     } catch (e) { return reject(e) }
-    let stdout = '', stderr = '', killed = false
-    const timer = setTimeout(() => { killed = true; child.kill('SIGKILL') }, 180000)
-    child.stdout.on('data', (d) => { stdout += d; if (stdout.length > 20 * 1024 * 1024) child.kill('SIGKILL') })
+    let stdout = '', stderr = '', killed = false, killReason = ''
+    const timer = setTimeout(() => { killed = true; killReason = 'timed out after 180s'; child.kill('SIGKILL') }, 180000)
+    child.stdout.on('data', (d) => {
+      stdout += d
+      if (stdout.length > 20 * 1024 * 1024 && !killed) {
+        killed = true
+        killReason = 'output exceeded 20MB limit'
+        child.kill('SIGKILL')
+      }
+    })
     child.stderr.on('data', (d) => { stderr += d })
     child.on('error', (e) => { clearTimeout(timer); reject(e) })
-    child.on('close', (code) => {
+    child.on('close', (code, signal) => {
       clearTimeout(timer)
       let fileOut = ''
       if (outFile) {
@@ -154,7 +161,9 @@ function runCli(bin, args, { outFile } = {}) {
         try { fs.unlinkSync(outFile) } catch (_) {}
       }
       const result = (fileOut || stdout).trim()
-      if (killed) return reject(new Error('timed out after 180s'))
+      if (killed) return reject(new Error(killReason))
+      if (signal) return reject(new Error(`${path.basename(bin)} terminated by signal ${signal}`))
+      if (code !== 0) return reject(new Error(stderr.trim() || `${path.basename(bin)} exited with code ${code}`))
       if (result) return resolve(result)
       reject(new Error(stderr.trim() || `${path.basename(bin)} exited with code ${code}`))
     })
@@ -201,14 +210,25 @@ function deslopResult(text) {
 
 const MAX_BODY = 4 * 1024 * 1024 // 4MB cap so a huge POST can't exhaust memory
 function readBody(req) {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     let d = ''
+    let size = 0
+    let tooLarge = false
     req.on('data', (c) => {
+      if (tooLarge) return
+      size += Buffer.byteLength(c)
+      if (size > MAX_BODY) {
+        tooLarge = true
+        const err = new Error('Request body exceeds the 4MB size limit.')
+        err.statusCode = 413
+        reject(err)
+        req.destroy()
+        return
+      }
       d += c
-      if (d.length > MAX_BODY) { req.destroy(); resolve('') } // too big -> treat as empty
     })
-    req.on('end', () => resolve(d))
-    req.on('error', () => resolve(''))
+    req.on('end', () => { if (!tooLarge) resolve(d) })
+    req.on('error', (err) => { if (!tooLarge) reject(err) })
   })
 }
 
@@ -249,6 +269,10 @@ function noslopApi() {
       // POST /api/deslop   body: raw text, or JSON {"text": "..."}
       // GET  /api/deslop?text=...    (or ?clean=1 to return plain text only)
       if (route === '/api/deslop') {
+        if (req.method !== 'GET' && req.method !== 'POST') {
+          res.writeHead(405, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store', Allow: 'GET, POST' })
+          return res.end(JSON.stringify({ error: 'Method not allowed.' }))
+        }
         let text = ''
         if (req.method === 'GET') {
           text = url.searchParams.get('text') || ''
@@ -411,7 +435,7 @@ ${corpus}`
 
       next()
     } catch (err) {
-      json(res, 500, { error: err.message })
+      json(res, err.statusCode || 500, { error: err.message })
     }
   }
 
