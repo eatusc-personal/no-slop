@@ -2,6 +2,21 @@ import { deslop, slopScore, flagsFor } from './deslop.js'
 import { diffHtml } from './diff.js'
 
 const $ = (id) => document.getElementById(id)
+
+/**
+ * Escapes text destined for innerHTML.
+ *
+ * Quotes are escaped as well as angle brackets, because several of these values
+ * are interpolated into attributes, where a bare quote closes the attribute and
+ * everything after it is markup. Defined here rather than beside its first use
+ * so that every caller in the file can reach it.
+ */
+const esc = (s) => String(s ?? '')
+  .replaceAll('&', '&amp;')
+  .replaceAll('<', '&lt;')
+  .replaceAll('>', '&gt;')
+  .replaceAll('"', '&quot;')
+  .replaceAll("'", '&#39;')
 const input = $('input')
 const output = $('output')
 const inCount = $('in-count')
@@ -175,20 +190,14 @@ async function loadExamples() {
 }
 
 function exRow(it, isDismissed) {
-  const escapeHtml = (value) => String(value ?? '')
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;')
-    .replaceAll("'", '&#39;')
   const act = isDismissed ? 'restore' : 'dismiss'
   const glyph = isDismissed ? '↩' : '✕'
   const title = isDismissed ? 'Restore' : 'Dismiss — already clean / not slop'
-  return `<div class="ex-item${isDismissed ? ' ex-dismissed' : ''}" data-file="${escapeHtml(it.file)}">` +
+  return `<div class="ex-item${isDismissed ? ' ex-dismissed' : ''}" data-file="${esc(it.file)}">` +
     `<span class="ex-dot" style="background:${it.sc.color}"></span>` +
-    `<span class="slug">${escapeHtml(it.slug)}</span>` +
-    `<span class="stage">${escapeHtml(it.stage)}</span>` +
-    `<button class="ex-act" data-act="${act}" data-file="${escapeHtml(it.file)}" title="${title}">${glyph}</button>` +
+    `<span class="slug">${esc(it.slug)}</span>` +
+    `<span class="stage">${esc(it.stage)}</span>` +
+    `<button class="ex-act" data-act="${act}" data-file="${esc(it.file)}" title="${title}">${glyph}</button>` +
     `</div>`
 }
 
@@ -352,7 +361,6 @@ $('ex-rewrite').addEventListener('click', () => {
 })
 
 // ---- voice examples viewer / pruner + consolidate ----
-const esc = (s) => String(s).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]))
 const exmOverlay = $('exm-overlay')
 const exmList = $('exm-list')
 const exmSub = $('exm-sub')
