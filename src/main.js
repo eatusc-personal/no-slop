@@ -175,14 +175,20 @@ async function loadExamples() {
 }
 
 function exRow(it, isDismissed) {
+  const escapeHtml = (value) => String(value ?? '')
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;')
   const act = isDismissed ? 'restore' : 'dismiss'
   const glyph = isDismissed ? '↩' : '✕'
   const title = isDismissed ? 'Restore' : 'Dismiss — already clean / not slop'
-  return `<div class="ex-item${isDismissed ? ' ex-dismissed' : ''}" data-file="${it.file}">` +
+  return `<div class="ex-item${isDismissed ? ' ex-dismissed' : ''}" data-file="${escapeHtml(it.file)}">` +
     `<span class="ex-dot" style="background:${it.sc.color}"></span>` +
-    `<span class="slug">${it.slug}</span>` +
-    `<span class="stage">${it.stage || ''}</span>` +
-    `<button class="ex-act" data-act="${act}" data-file="${it.file}" title="${title}">${glyph}</button>` +
+    `<span class="slug">${escapeHtml(it.slug)}</span>` +
+    `<span class="stage">${escapeHtml(it.stage)}</span>` +
+    `<button class="ex-act" data-act="${act}" data-file="${escapeHtml(it.file)}" title="${title}">${glyph}</button>` +
     `</div>`
 }
 
