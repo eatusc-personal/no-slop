@@ -232,3 +232,45 @@ class EngineParityTests(APITestCase):
         # The bug this replaced would have failed the first three cases:
         self.assertNotEqual(round(2.5), 3)  # Python's round(): banker's rounding gives 2
         self.assertEqual(_js_round(2.5), 3)  # JS Math.round() semantics: always 3
+
+    def test_antithesis_flag_does_not_depend_on_a_comma_separator(self):
+        # Ported alongside the JS fix. The separator was a literal ",", so the
+        # em-dash form -- the way an LLM is most likely to write the #1 tell --
+        # raised no flag at all. Both engines must agree, which is the whole
+        # point of this port.
+        for separator in [",", " \u2014", " \u2013", ";", ":", " -"]:
+            text = "It's not just a tool%s it's a revolution." % separator
+            types = [f["type"] for f in flags_for(text)]
+            self.assertIn("antithesis", types,
+                          "no antithesis flag for separator %r" % separator)
+            self.assertEqual(slop_score(text)["score"], 100,
+                             "score differs for separator %r" % separator)
+
+    def test_isnt_its_flag_does_not_depend_on_a_comma_separator(self):
+        types = [f["type"] for f in
+                 flags_for("This isn't a demo \u2014 it's the product.")]
+        self.assertIn("isnt-its", types)
+
+    def test_a_hyphenated_word_is_not_a_clause_boundary(self):
+        # " - " separates clauses; "cutting-edge" is one word. A bare hyphen in
+        # the separator class would flag every compound adjective.
+        self.assertEqual(flags_for("We use cutting-edge tools."), [])
+        self.assertTrue(flags_for("It's not just talk - it's shipped."))
+
+    def test_a_lowercase_abbreviation_is_not_capitalized_itself(self):
+        # KNOWN-ISSUES.md reported this as start-of-input only. It was every
+        # sentence start: LOWER_ABBR inspects the text BEFORE the letter.
+        self.assertEqual(deslop("e.g. the result")["text"], "e.g. the result")
+        self.assertEqual(deslop("Foo happened. e.g. the result")["text"],
+                         "Foo happened. e.g. the result")
+        self.assertEqual(deslop("vs. the other")["text"], "vs. the other")
+
+    def test_ordinary_sentence_starts_are_still_capitalized(self):
+        # The abbreviation exemption must not become a blanket one.
+        self.assertEqual(deslop("the result was good")["text"],
+                         "The result was good")
+        self.assertEqual(deslop("Foo. bar happened")["text"],
+                         "Foo. Bar happened")
+        self.assertEqual(deslop("iPhone sales rose")["text"],
+                         "iPhone sales rose")
+

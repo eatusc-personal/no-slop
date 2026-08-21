@@ -35,7 +35,7 @@ Python backend.
 | Local API | Node/Vite middleware | Text cleanup, AI rewrite orchestration, style learning, examples, and editable docs |
 | MCP server | Model Context Protocol over stdio | Native tools for Claude Code, Claude Desktop, Cursor, and other MCP clients |
 | CLI | Node.js | Shell pipelines, files, clipboard workflows, and automation |
-| Python API | Django + Django REST Framework | Alternative backend with validation, throttling, CORS controls, and 18 tests |
+| Python API | Django + Django REST Framework | Alternative backend with validation, throttling, CORS controls, and 23 tests |
 | Core engine | Dependency-free JavaScript | Shared cleanup, scoring, and structural flag detection |
 
 ```text

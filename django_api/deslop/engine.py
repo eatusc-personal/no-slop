@@ -156,6 +156,7 @@ EMOJI_RE = (
 # Common lowercase abbreviations after which the next word should NOT be
 # re-capitalized as a sentence start ("e.g. the point", not "e.g. The point").
 LOWER_ABBR = re.compile(r"\b(?:e\.g|i\.e|etc|vs|cf|viz|approx|esp)\.\s*$", re.IGNORECASE)
+LEADING_ABBR = re.compile(r"(?:e\.g|i\.e|etc|vs|cf|viz|approx|esp)\.", re.IGNORECASE)
 
 
 def deslop(text):
@@ -237,8 +238,14 @@ def deslop(text):
     #    lowercase word as the new first word). Leave intentional lowercase-initial
     #    brand names alone (iPhone, iOS, eBay -- the next letter is a capital) and
     #    don't capitalize after common lowercase abbreviations (e.g., i.e., vs.).
+    #    The abbreviation ITSELF also stays lowercase. LOWER_ABBR only inspects
+    #    the text BEFORE the letter, so "e.g. the result" capitalized its own
+    #    first letter into "E.g.". See the matching comment in src/deslop.js.
     def recap(m):
-        if LOWER_ABBR.search(m.string[: m.start(2)]):
+        start = m.start(2)
+        if LOWER_ABBR.search(m.string[:start]):
+            return m.group(0)
+        if LEADING_ABBR.match(m.string[start:]):
             return m.group(0)
         return m.group(1) + m.group(2).upper()
 
@@ -253,6 +260,11 @@ def deslop(text):
 # ---------------------------------------------------------------------------
 # Flags -- slop the engine detects but will NOT auto-rewrite (too risky), so a
 # human fixes them. Headlined by the "it's not X, it's Y" antithesis pattern.
+#
+# The clause separator is a CHARACTER CLASS, not a comma. See the matching
+# comment in src/deslop.js: a literal "," meant the em-dash form of the #1 AI
+# tell raised no flag at all, which is the form an LLM is most likely to write.
+# A bare hyphen is deliberately excluded so "cutting-edge" stays a word.
 # ---------------------------------------------------------------------------
 FLAG_PATTERNS = [
     {
@@ -260,7 +272,8 @@ FLAG_PATTERNS = [
         "label": "\"it's not X, it's Y\" pattern",
         "fix": "Cut the negation. Make the one positive point directly.",
         "re": r"\b(it'?s|it is|this is|that'?s|they'?re|we'?re|you'?re|there'?s)\s+not\s+"
-              r"(just\s+|only\s+|merely\s+|simply\s+)?[^.?!,]{2,45}?,\s*"
+              r"(just\s+|only\s+|merely\s+|simply\s+)?[^.?!,;:\u2014\u2013]{2,45}?"
+              r"(?:\s*[\u2014\u2013]\s*|\s+-\s+|[,;:]\s*)"
               r"(it'?s|it is|they'?re|that'?s|but)\b",
     },
     {
@@ -273,7 +286,10 @@ FLAG_PATTERNS = [
         "type": "isnt-its",
         "label": "\"X isn't Y, it's Z\" pattern",
         "fix": "Skip the setup. Say Z plainly.",
-        "re": r"\b(isn'?t|aren'?t|wasn'?t|weren'?t)\s+(just\s+|only\s+)?[^.?!,]{2,45}?,\s*(it'?s|they'?re|it is|but)\b",
+        "re": r"\b(isn'?t|aren'?t|wasn'?t|weren'?t)\s+(just\s+|only\s+)?"
+              r"[^.?!,;:\u2014\u2013]{2,45}?"
+              r"(?:\s*[\u2014\u2013]\s*|\s+-\s+|[,;:]\s*)"
+              r"(it'?s|they'?re|it is|but)\b",
     },
     {
         "type": "not-about-but",

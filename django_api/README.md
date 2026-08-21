@@ -17,7 +17,7 @@ django_api/
     serializers.py    # DRF input validation (the response shape is verified in tests.py instead)
     parsers.py         # custom parser so raw text/plain bodies work, like the Node API
     views.py            # POST/GET /api/deslop/
-    tests.py             # 18 tests: endpoint behavior, edge cases, engine parity
+    tests.py             # 23 tests: endpoint behavior, edge cases, engine parity
   cli/
     deslop_cli.py     # same engine, no server or Django needed
   noslop_api/
@@ -47,7 +47,7 @@ cd django_api
 python3.14 -m venv venv && source venv/bin/activate   # or python3.12+
 pip install -r requirements.txt
 python manage.py migrate          # one-time; see "Migration noise" below
-python manage.py test deslop      # 18 tests, all green
+python manage.py test deslop      # 23 tests, all green
 python manage.py runserver 127.0.0.1:8420
 ```
 
@@ -99,7 +99,7 @@ silently.
 | Input validation | None (any string is valid) | `DeslopRequestSerializer`, 4MB cap enforced with a real 400 |
 | Abuse prevention | Rejects any request with a non-localhost `Origin` header | `AnonRateThrottle` (120/min) — Origin-header sniffing doesn't fit DRF's request cycle the same way |
 | Cross-origin frontend | N/A — same-origin, Vite serves the app itself | `django-cors-headers`, scoped to `localhost`/`127.0.0.1` only, for a separate React/Next.js dev server |
-| Tests | None in the Node version | 18 DRF `APITestCase` tests — endpoint shape, edge cases (empty text, oversized text, exact-boundary text, GET-path size cap), throttling (including one that actually drives past the limit and checks for a 429), and engine parity (including a JS-vs-Python rounding-semantics regression test) |
+| Tests | None in the Node version | 23 DRF `APITestCase` tests — endpoint shape, edge cases (empty text, oversized text, exact-boundary text, GET-path size cap), throttling (including one that actually drives past the limit and checks for a 429), and engine parity (including a JS-vs-Python rounding-semantics regression test) |
 
 That last row is deliberate: the Node app has no test suite, and porting it
 was the opportunity to add one, following a "a feature isn't done until the

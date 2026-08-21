@@ -229,9 +229,19 @@ export function deslop(input) {
   //    brand names alone (iPhone, iOS, eBay — the next letter is a capital) and
   //    don't capitalize after common lowercase abbreviations (e.g., i.e., vs.).
   const LOWER_ABBR = /\b(?:e\.g|i\.e|etc|vs|cf|viz|approx|esp)\.\s*$/i;
-  text = text.replace(/(^|[.!?]\s+|\n\s*)([a-z])(?![a-zA-Z]*[A-Z])/g, (m, pre, ch, offset, str) =>
-    LOWER_ABBR.test(str.slice(0, offset + pre.length)) ? m : pre + ch.toUpperCase(),
-  );
+  //    The abbreviation ITSELF also stays lowercase. LOWER_ABBR only inspects
+  //    the text BEFORE the letter, so "e.g. the result" capitalized its own
+  //    first letter into "E.g." - at offset zero there is nothing before it to
+  //    match, and after a sentence end the preceding slice is the previous
+  //    sentence. KNOWN-ISSUES.md reported this as a start-of-input problem; it
+  //    was every sentence start ("Foo happened. e.g. x" -> "E.g.").
+  const LEADING_ABBR = /^(?:e\.g|i\.e|etc|vs|cf|viz|approx|esp)\./i;
+  text = text.replace(/(^|[.!?]\s+|\n\s*)([a-z])(?![a-zA-Z]*[A-Z])/g, (m, pre, ch, offset, str) => {
+    const start = offset + pre.length;
+    if (LOWER_ABBR.test(str.slice(0, start))) return m;
+    if (LEADING_ABBR.test(str.slice(start))) return m;
+    return pre + ch.toUpperCase();
+  });
 
   text = text.trim();
 
@@ -243,13 +253,27 @@ export function deslop(input) {
 // Flags — slop the engine detects but will NOT auto-rewrite (too risky), so a
 // human fixes them. Headlined by the "it's not X, it's Y" antithesis pattern,
 // which creators (Alex Hormozi, Peter Yang, Anna Nassery) call the #1 AI tell.
+//
+// The clause separator is a CHARACTER CLASS, not a comma. It was a literal ","
+// until 2026-08-21, which meant the single most characteristic way an LLM
+// writes this pattern - with an em dash - scored 98 and raised no flag at all,
+// while the same sentence with a comma scored 100 and flagged. Em-dash overload
+// and the antithesis flip are the two signals this tool exists to catch, and
+// they co-occur constantly, so the one form that slipped through was the one
+// worth catching most. deslop() normalizes those dashes to commas, so the
+// engine was rewriting text INTO the shape the flagger wanted and never
+// looking again.
+//
+// The middle span excludes every separator it might swallow. A bare hyphen is
+// deliberately NOT one of them - it has to be spaced (" - ") to count, so
+// "cutting-edge" stays a word rather than becoming a clause boundary.
 // ---------------------------------------------------------------------------
 const FLAG_PATTERNS = [
   {
     type: 'antithesis',
     label: '"it\'s not X, it\'s Y" pattern',
     fix: 'Cut the negation. Make the one positive point directly.',
-    re: /\b(it'?s|it is|this is|that'?s|they'?re|we'?re|you'?re|there'?s)\s+not\s+(just\s+|only\s+|merely\s+|simply\s+)?[^.?!,]{2,45}?,\s*(it'?s|it is|they'?re|that'?s|but)\b/gi,
+    re: /\b(it'?s|it is|this is|that'?s|they'?re|we'?re|you'?re|there'?s)\s+not\s+(just\s+|only\s+|merely\s+|simply\s+)?[^.?!,;:—–]{2,45}?(?:\s*[—–]\s*|\s+-\s+|[,;:]\s*)(it'?s|it is|they'?re|that'?s|but)\b/gi,
   },
   {
     type: 'not-just-but',
@@ -261,7 +285,7 @@ const FLAG_PATTERNS = [
     type: 'isnt-its',
     label: '"X isn\'t Y, it\'s Z" pattern',
     fix: 'Skip the setup. Say Z plainly.',
-    re: /\b(isn'?t|aren'?t|wasn'?t|weren'?t)\s+(just\s+|only\s+)?[^.?!,]{2,45}?,\s*(it'?s|they'?re|it is|but)\b/gi,
+    re: /\b(isn'?t|aren'?t|wasn'?t|weren'?t)\s+(just\s+|only\s+)?[^.?!,;:—–]{2,45}?(?:\s*[—–]\s*|\s+-\s+|[,;:]\s*)(it'?s|they'?re|it is|but)\b/gi,
   },
   {
     type: 'not-about-but',
