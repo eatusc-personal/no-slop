@@ -1,4 +1,4 @@
-# No Slop — Django/DRF port
+# No Slop: Django/DRF port
 
 A second backend for the same de-slop engine, built on a **Python + Django +
 Django REST Framework** stack, with React/Next.js as the intended frontend. It
@@ -7,13 +7,13 @@ stack, not just the Node original.
 
 The original app (`../`) is Node/Vite: one pure-function engine
 (`../src/deslop.js`) reused by an HTTP API embedded in Vite's dev server, a
-CLI, and an MCP server. This port keeps that same architecture — **one
-engine, many surfaces** — translated to Django's idioms:
+CLI, and an MCP server. This port keeps that same architecture (**one
+engine, many surfaces**) translated to Django's idioms:
 
 ```
 django_api/
   deslop/
-    engine.py        # ported line-by-line from ../src/deslop.js — no Django import
+    engine.py        # ported line-by-line from ../src/deslop.js, no Django import
     serializers.py    # DRF input validation (the response shape is verified in tests.py instead)
     parsers.py         # custom parser so raw text/plain bodies work, like the Node API
     views.py            # POST/GET /api/deslop/
@@ -27,8 +27,8 @@ django_api/
 ## Why a second backend for the same tool
 
 The Node version is what actually runs day to day. This port exists to prove
-the same API design translates cleanly to Django/DRF — a common enterprise
-backend stack — without changing the response contract at all.
+the same API design translates cleanly to Django/DRF, a common enterprise
+backend stack, without changing the response contract at all.
 A client (curl, a script, a React app) can point at either backend and get
 the same output; see [Engine parity](#engine-parity) below for how that was
 checked on real inputs rather than assumed from reading the regex side by
@@ -57,7 +57,7 @@ curl -s -X POST http://127.0.0.1:8420/api/deslop/ \
   -H "Content-Type: application/json" \
   -d '{"text":"It is not just a tool, it is a revolution. 🚀"}'
 
-# raw text body — same ergonomics as the Node API
+# raw text body, same ergonomics as the Node API
 curl -s -X POST "http://127.0.0.1:8420/api/deslop/?clean=1" \
   -H "Content-Type: text/plain" --data-binary 'We leverage a robust solution.'
 
@@ -95,11 +95,11 @@ silently.
 
 | Concern | Node (`../vite.config.js`) | Django/DRF (here) |
 |---|---|---|
-| Raw text body | Reads the stream manually | Custom `PlainTextParser` — DRF has no built-in one |
+| Raw text body | Reads the stream manually | Custom `PlainTextParser` (DRF has no built-in one) |
 | Input validation | None (any string is valid) | `DeslopRequestSerializer`, 4MB cap enforced with a real 400 |
-| Abuse prevention | Rejects any request with a non-localhost `Origin` header | `AnonRateThrottle` (120/min) — Origin-header sniffing doesn't fit DRF's request cycle the same way |
-| Cross-origin frontend | N/A — same-origin, Vite serves the app itself | `django-cors-headers`, scoped to `localhost`/`127.0.0.1` only, for a separate React/Next.js dev server |
-| Tests | None in the Node version | 23 DRF `APITestCase` tests — endpoint shape, edge cases (empty text, oversized text, exact-boundary text, GET-path size cap), throttling (including one that actually drives past the limit and checks for a 429), and engine parity (including a JS-vs-Python rounding-semantics regression test) |
+| Abuse prevention | Rejects any request with a non-localhost `Origin` header | `AnonRateThrottle` (120/min); Origin-header sniffing doesn't fit DRF's request cycle the same way |
+| Cross-origin frontend | N/A: same-origin, Vite serves the app itself | `django-cors-headers`, scoped to `localhost`/`127.0.0.1` only, for a separate React/Next.js dev server |
+| Tests | None in the Node version | 23 DRF `APITestCase` tests: endpoint shape, edge cases (empty text, oversized text, exact-boundary text, GET-path size cap), throttling (including one that actually drives past the limit and checks for a 429), and engine parity (including a JS-vs-Python rounding-semantics regression test) |
 
 That last row is deliberate: the Node app has no test suite, and porting it
 was the opportunity to add one, following a "a feature isn't done until the
