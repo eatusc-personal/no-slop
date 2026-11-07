@@ -93,3 +93,9 @@ REST_FRAMEWORK = {
 }
 
 USE_TZ = True
+
+# Django 6.0.8 enforces this on JSON bodies too. Keep it just above the
+# serializer's 4 MiB text cap (deslop/serializers.py MAX_TEXT_BYTES) so the
+# serializer, not the request parser, decides what is too long. The 64 KiB
+# headroom covers the JSON wrapper around the text.
+DATA_UPLOAD_MAX_MEMORY_SIZE = 4 * 1024 * 1024 + 64 * 1024
