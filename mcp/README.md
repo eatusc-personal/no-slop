@@ -1,9 +1,9 @@
-# No Slop — MCP Server
+# No Slop: MCP Server
 
 A [Model Context Protocol](https://modelcontextprotocol.io) server that exposes the
 No Slop de-slop engine as tools any MCP client (Claude Code, Claude Desktop, Cursor)
-can call directly. It imports [`src/deslop.js`](../src/deslop.js) — the same engine
-behind the app, HTTP API, and CLI — so **no running server is required**.
+can call directly. It imports [`src/deslop.js`](../src/deslop.js), the same engine
+behind the app, HTTP API, and CLI, so **no running server is required**.
 
 ## Tools
 
@@ -44,4 +44,4 @@ node mcp/test-client.mjs          # spawns the server, runs slop samples through
 stderr). It advertises the tools via `ListTools`, handles `CallTool`, and calls the
 pure `deslop()` / `slopScore()` / `flagsFor()` functions. The `flags` it returns are
 the structural tells (the "it's not X, it's Y" antithesis family) the engine won't
-auto-rewrite — a human (or the calling model) should fix those by hand.
+auto-rewrite; a human (or the calling model) should fix those by hand.
