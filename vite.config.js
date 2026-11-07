@@ -415,7 +415,8 @@ ${corpus}`
       }
 
       const docMatch = route.match(/^\/api\/doc\/(\w+)$/)
-      if (docMatch && DOCS[docMatch[1]]) {
+      // hasOwn: \w+ also matches inherited keys like "constructor" and "__proto__"
+      if (docMatch && Object.hasOwn(DOCS, docMatch[1])) {
         const file = DOCS[docMatch[1]]
         if (req.method === 'GET') {
           let text = ''
