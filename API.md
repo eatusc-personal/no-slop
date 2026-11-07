@@ -1,4 +1,4 @@
-# No Slop — API
+# No Slop: API
 
 Run any text through the de-slop engine programmatically. Same engine as the app.
 Use it from a script, an agent, or by telling an LLM to call it.
@@ -28,7 +28,7 @@ curl -s -X POST http://localhost:4242/api/deslop \
 ```
 
 ### Just the clean text (no JSON)
-Add `?clean=1` to get `text/plain` back — ideal for piping:
+Add `?clean=1` to get `text/plain` back, which is ideal for piping:
 
 ```bash
 curl -s -X POST "http://localhost:4242/api/deslop?clean=1" --data-binary @notes.md > notes.clean.md
@@ -54,7 +54,7 @@ Quick one-liners (URL-encoded). For anything long, use POST.
     "total": 14,
     "byCategory": [ { "label": "Inflated words", "count": 9 }, ... ]
   },
-  "flags": [                      // detected but NOT auto-fixed — rewrite by hand
+  "flags": [                      // detected but NOT auto-fixed; rewrite by hand
     {
       "type": "antithesis",
       "label": "\"it's not X, it's Y\" pattern",
@@ -68,7 +68,7 @@ Quick one-liners (URL-encoded). For anything long, use POST.
 ```
 
 `clean` is the auto-fixed text. `flags` are structural tells (the "it's not X, it's Y"
-family) that can't be safely rewritten by machine — a human should fix those.
+family) that can't be safely rewritten by machine; a human should fix those.
 
 ---
 
@@ -163,7 +163,7 @@ an agent, etc.):
 > any final writing, run it through my local No Slop engine instead of editing by feel.
 > If you have shell access: `printf '%s' "<TEXT>" | node /path/to/noslop/cli/deslop.mjs --report`.
 > Otherwise POST it: `curl -s -X POST "http://localhost:4242/api/deslop" -H "Content-Type: text/plain" --data-binary "<TEXT>"`.
-> Return the `clean` text. Then look at `flags` — for each one, manually rewrite that
+> Return the `clean` text. Then look at `flags`: for each one, manually rewrite that
 > sentence per its `fix` (these are the "it's not X, it's Y" patterns the engine won't
 > touch). Show me the final text and the slop score.
 
@@ -177,7 +177,7 @@ Short version for a quick prompt:
 ## Notes
 
 - The server binds to `127.0.0.1` only (never the network) and rejects cross-origin
-  browser requests. CLI tools and agents (curl, scripts) work fine — they don't send an
+  browser requests. CLI tools and agents (curl, scripts) work fine, because they don't send an
   `Origin` header. A website you visit cannot drive the API or read its responses.
 - The rules behind the engine: `no-slop-rules.md` (strip) and `voice.md` (emulate).
-- The API and CLI share `src/deslop.js` with the app — one engine, one behavior.
+- The API and CLI share `src/deslop.js` with the app: one engine, one behavior.
