@@ -1,6 +1,6 @@
 # No Slop
 
-[![CI](https://github.com/eatusc/no-slop/actions/workflows/ci.yml/badge.svg)](https://github.com/eatusc/no-slop/actions/workflows/ci.yml)
+[![CI](https://github.com/eatusc-personal/no-slop/actions/workflows/ci.yml/badge.svg)](https://github.com/eatusc-personal/no-slop/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 Local-first AI writing cleanup for humans and agents. No Slop detects common
@@ -52,7 +52,7 @@ Django/DRF API ──> Python port with the same response contract
 Requires Node.js 20 or newer.
 
 ```bash
-git clone https://github.com/eatusc/no-slop.git
+git clone https://github.com/eatusc-personal/no-slop.git
 cd no-slop
 npm install
 npm run dev

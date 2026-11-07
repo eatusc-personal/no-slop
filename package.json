@@ -6,7 +6,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/eatusc/no-slop.git"
+    "url": "git+https://github.com/eatusc-personal/no-slop.git"
   },
   "keywords": [
     "ai-writing-detector",
