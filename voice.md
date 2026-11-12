@@ -90,10 +90,10 @@ adjectives. An opinion you can disagree with. Confident enough to undersell.
 The example captions are short and punchy. For **longer explanatory/analytical writing**, use
 the general craft rules below.
 
-> **White-hat note.** These are *general, well-established writing principles* — vary
-> sentence length, define jargon, lead with specifics, and so on. We studied strong
-> analytical writing (including Lyn Alden's public essays) only to **identify and
-> measure** which of these techniques separate clear human writing from AI slop. The
+> **White-hat note.** These are *general, well-established writing principles*: vary
+> sentence length, define jargon, lead with specifics, and so on. We studied strong,
+> human-written analytical essays only to **identify and measure** which of these
+> techniques separate clear human writing from AI slop. The
 > goal is **not** to imitate any particular writer's voice, mimic their style, or reuse
 > their words. Do not copy or paraphrase another author's text. All examples below are
 > generic, written for this file to illustrate the principle. Write in your own voice.
@@ -170,9 +170,8 @@ Sources & ethics:
 - **Short-form models:** the product captions in `examples/`, our own content, free to
   emulate: `dont-read-this-bot`, `build-it-yourself`, `ai-jobs-doom-boom`,
   `ai-interface-mcp`, `thrivepact-case-study`, `ai-codes-shortcuts`, `start-here`.
-- **Long-form calibration sample:** Lyn Alden's public essays were analyzed *only* to
-  measure which general writing techniques mark clear human prose. We do **not** emulate
-  her voice or reuse her text. Her essays are **not** redistributed in this repo; pull
-  them locally for your own analysis with `examples/lyn-alden/fetch-lyn.sh <slug>` and
-  respect lynalden.com's terms. The rules above are general craft in our own words.
+- **Long-form calibration:** published human-written essays were analyzed *only* to
+  measure which general writing techniques mark clear human prose. No third-party text
+  is stored or redistributed in this repo. The rules above are general craft in our own
+  words.
 - See also `no-slop-rules.md` for the strip-it-out rules.
