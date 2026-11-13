@@ -70,7 +70,7 @@ curl -s -X POST http://localhost:4242/api/deslop \
   -d '{"text":"Furthermore, our seamless platform leverages cutting-edge AI. 🚀"}'
 ```
 
-Example response:
+Example response (signals that scored zero are omitted here):
 
 ```json
 {
@@ -217,7 +217,7 @@ Django, and Django REST Framework. It includes:
 - request validation and a 4 MB limit
 - local-development CORS controls
 - anonymous rate limiting
-- 18 endpoint, regression, throttling, and parity tests
+- 23 endpoint, regression, throttling, and parity tests
 
 ```bash
 cd django_api
